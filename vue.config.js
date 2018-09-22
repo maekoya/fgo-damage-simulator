@@ -1,6 +1,7 @@
 // vue.config.js
 module.exports = {
   // options...
+  baseUrl: '',
   productionSourceMap: false,
   css: {
     sourceMap: false
