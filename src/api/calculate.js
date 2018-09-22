@@ -98,7 +98,7 @@ const Calculate = {
         return num
       },
       rate (num) {
-        let result = (!num) ? 100 : num
+        let result = num || 100
         result /= 100
         return result
       },

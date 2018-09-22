@@ -3,49 +3,6 @@
   <section class="section">
     <div class="container">
 
-      <!-- <div class="content">
-        <div class="field is-grouped">
-          <div class="control">
-            <div class="select is-rounded">
-              <select>
-                <option>☆5</option>
-                <option>☆4</option>
-              </select>
-            </div>
-          </div>
-          <div class="control">
-            <div class="select is-rounded">
-              <select>
-                <option>弓</option>
-                <option>剣</option>
-              </select>
-            </div>
-          </div>
-          <div class="control">
-            <div class="select is-rounded">
-              <select>
-                <option>ギルガメッシュ</option>
-                <option>オリオン</option>
-                <option>ニコラ・テスラ</option>
-                <option>アルジュナ</option>
-                <option>アルトリア</option>
-                <option>イシュタル</option>
-                <option>新宿のアーチャー</option>
-                <option>ナポレオン</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="field is-grouped">
-          <div class="control">
-            <label class="checkbox">
-              <input type="checkbox">
-              フォウマ
-            </label>
-          </div>
-        </div>
-      </div> -->
-
       <div class="columns">
         <div class="column">
           <table class="table is-fullwidth">
@@ -322,12 +279,6 @@
           <div class="content">
             <div class="buttons">
               <button class="button" @click="resetResources">Reset All</button>
-              <button class="button">
-                <span>Set Sample Data</span>
-                <span class="icon has-text-dark is-small" v-tooltip.top="'ギル（弓）、スキルマ、宝具マ、フォウマ、宝具特攻、黒聖杯マ'">
-                  <i class="fas fa-info-circle"></i>
-                </span>
-              </button>
             </div>
           </div>
 
@@ -372,6 +323,7 @@
 <script>
 import _ from 'lodash'
 import Calc from '@/api/calculate'
+import Validate from '@/api/validate'
 import { npResourcesSchema } from '@/api/schema'
 import Countup from '@/components/Countup'
 
@@ -379,6 +331,7 @@ export default {
   name: 'NoblePhantasm',
   data () {
     return {
+      isValid: true,
       damages: {
         basic: 0,
         min: 0,
@@ -390,6 +343,7 @@ export default {
   watch: {
     resources: {
       handler: function () {
+        this.validateResources()
         this.caluclateDamages()
       },
       immediate: true,
@@ -397,7 +351,11 @@ export default {
     }
   },
   methods: {
+    validateResources () {
+      this.isValid = Validate.resourcesToSafetyRange(this.resources)
+    },
     caluclateDamages () {
+      if (!this.isValid) return false
       this.damages = Calc.damages(this.resources)
     },
     resetResources () {
