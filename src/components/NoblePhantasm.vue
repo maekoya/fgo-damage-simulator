@@ -3,6 +3,47 @@
   <section class="section">
     <div class="container">
 
+      <div class="field is-grouped">
+        <div class="control">
+          <div class="select is-rounded">
+            <select v-model="sortServantsKeys.class">
+              <option value="saber">剣</option>
+              <option value="archer">弓</option>
+              <option value="lancer">槍</option>
+              <option value="rider">騎</option>
+              <option value="caster">術</option>
+              <option value="assassin">殺</option>
+              <option value="berserker">狂</option>
+              <option value="ruler">裁</option>
+              <option value="avenger">讐</option>
+              <option value="moonCancer">月</option>
+              <option value="alterEgo">分</option>
+              <option value="shielder">盾</option>
+              <option value="foreigner">降</option>
+            </select>
+          </div>
+        </div>
+        <div class="control">
+          <div class="select is-rounded">
+            <select v-model.number="sortServantsKeys.rarity">
+              <option value="5">☆5</option>
+              <option value="4">☆4</option>
+              <option value="3">☆3</option>
+              <option value="2">☆2</option>
+              <option value="1">☆1</option>
+            </select>
+          </div>
+        </div>
+        <div class="control">
+          <div class="select is-rounded">
+            <select v-model="servant">
+              <option value="">サーヴァントを選択</option>
+              <option v-for="servant in servants" :value="servant.key" :key="servant.key">{{ servant.name }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div class="columns">
         <div class="column">
           <table class="table is-fullwidth">
@@ -41,7 +82,7 @@
                 </span>
               </th>
               <td>
-                <div class="field has-addons is-marginless">
+                <div class="field has-addons">
                   <div class="control is-expanded">
                     <input type="number" class="input" step="10" min="0" v-model.number="resources.cardTypeBuff.num">
                   </div>
@@ -322,9 +363,11 @@
 
 <script>
 import _ from 'lodash'
+import Settings from '@/api/settings'
 import Calc from '@/api/calculate'
 import Validate from '@/api/validate'
-import { npResourcesSchema } from '@/api/schema'
+import { npResourcesSchema } from '@/api/data/schema'
+import { ServantsData } from '@/api/data/servants'
 import Countup from '@/components/Countup'
 
 export default {
@@ -337,7 +380,12 @@ export default {
         min: 0,
         max: 0
       },
-      resources: _.cloneDeep(npResourcesSchema)
+      resources: _.cloneDeep(npResourcesSchema),
+      sortServantsKeys: {
+        class: 'saber',
+        rarity: 5
+      },
+      servant: ''
     }
   },
   watch: {
@@ -348,9 +396,33 @@ export default {
       },
       immediate: true,
       deep: true
+    },
+    servant () {
+      this.setServantData ()
+    }
+  },
+  computed: {
+    servants () {
+      const servants = _.filter(ServantsData, servant => {
+        if (servant.type !== this.sortServantsKeys.class) return false
+        if (servant.rarity !== this.sortServantsKeys.rarity) return false
+        return true
+      })
+      this.servant = ''
+      return servants
     }
   },
   methods: {
+    setServantData () {
+      const r = this.resources
+      const data = _.find(ServantsData, item => item.key === this.servant)
+      if (!data) return false
+
+      r.atk.num = data.atk
+      r.npDmgRate.num = data.npDmgRate
+      r.cardTypeAbility.num = Settings.cardTypeRates[data.npCardType]
+      r.classAbility.num  = Settings.classAbilityRates[data.type]
+    },
     validateResources () {
       this.isValid = Validate.resourcesToSafetyRange(this.resources)
     },
@@ -360,6 +432,7 @@ export default {
     },
     resetResources () {
       this.resources = _.cloneDeep(npResourcesSchema)
+      this.servant = ''
     },
     resetValue (key) {
       if (!npResourcesSchema.hasOwnProperty(key)) return false
@@ -386,5 +459,10 @@ export default {
 }
 .tooltip-custom {
   font-size: 13px;
+}
+.tags {
+  .tag {
+    font-size: 11px;
+  }
 }
 </style>

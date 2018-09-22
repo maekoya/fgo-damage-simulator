@@ -1,11 +1,6 @@
 import _ from 'lodash'
 import { Decimal } from 'decimal.js'
-
-const Config = {
-  atkBaseRate: 0.23,
-  atkMaxRange: 1.1,
-  atkMinRange: 0.9
-}
+import Settings from '@/api/settings'
 
 const Calculate = {
   /**
@@ -31,7 +26,7 @@ const Calculate = {
       .times(r.classAbility)
       .times(r.classChemistry)
       .times(r.servantChemistry)
-      .times(Config.atkBaseRate)
+      .times(Settings.dmgBaseRate)
       .times(
         Decimal.min(5, Decimal.max(0.001, 1 + r.cardTypeBuff + r.enemyCardTypeDefDebuff)))
 
@@ -66,13 +61,13 @@ const Calculate = {
      * calclate each damage
      */
     damages.min = damages.basic
-      .times(Config.atkMinRange)
+      .times(Settings.dmgMinRange)
       .plus(category.e)
       .ceil()
       .toNumber()
 
     damages.max = damages.basic
-      .times(Config.atkMaxRange)
+      .times(Settings.dmgMaxRange)
       .plus(category.e)
       .ceil()
       .toNumber()
