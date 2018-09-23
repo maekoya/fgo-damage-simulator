@@ -37,7 +37,7 @@
         <div class="control">
           <div class="select is-rounded">
             <select v-model="servant">
-              <option value="">サーヴァントを選択</option>
+              <option value="" selected>サーヴァントを選択</option>
               <option v-for="servant in servants" :value="servant.key" :key="servant.key">{{ servant.name }}</option>
             </select>
           </div>
@@ -364,10 +364,10 @@
 <script>
 import _ from 'lodash'
 import Settings from '@/api/settings'
+import axios from '@/api/axios'
 import Calc from '@/api/calculate'
 import Validate from '@/api/validate'
 import { npResourcesSchema } from '@/api/data/schema'
-import { ServantsData } from '@/api/data/servants'
 import Countup from '@/components/Countup'
 
 export default {
@@ -385,8 +385,12 @@ export default {
         class: 'saber',
         rarity: 5
       },
-      servant: ''
+      servant: '',
+      ServantsData: []
     }
+  },
+  mounted () {
+    this.fetchServants()
   },
   watch: {
     resources: {
@@ -398,30 +402,33 @@ export default {
       deep: true
     },
     servant () {
-      this.setServantData ()
+      this.setServantData()
     }
   },
   computed: {
     servants () {
-      const servants = _.filter(ServantsData, servant => {
-        if (servant.type !== this.sortServantsKeys.class) return false
+      let servants = _.filter(this.ServantsData, servant => {
+        if (servant.class !== this.sortServantsKeys.class) return false
         if (servant.rarity !== this.sortServantsKeys.rarity) return false
         return true
       })
-      this.servant = ''
       return servants
     }
   },
   methods: {
+    async fetchServants () {
+      const response = await axios.get('https://script.google.com/macros/s/AKfycbw0av1BWExdrtR8fehzo-3P_CQ5V-SF9v6f_UGwurkawE90zA/exec')
+      this.ServantsData = response.data
+    },
     setServantData () {
       const r = this.resources
-      const data = _.find(ServantsData, item => item.key === this.servant)
+      const data = _.find(this.ServantsData, item => item.key === this.servant)
       if (!data) return false
 
       r.atk.num = data.atk
       r.npDmgRate.num = data.npDmgRate
       r.cardTypeAbility.num = Settings.cardTypeRates[data.npCardType]
-      r.classAbility.num  = Settings.classAbilityRates[data.type]
+      r.classAbility.num = Settings.classAbilityRates[data.class]
     },
     validateResources () {
       this.isValid = Validate.resourcesToSafetyRange(this.resources)
